@@ -230,7 +230,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -2121,7 +2121,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -3021,7 +3021,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -3383,6 +3383,13 @@
                     "dflt": "both",
                     "editType": "calc",
                     "description": "Constrain the size of text inside or outside a bar to be no larger than the bar itself."
+                },
+                "cliponaxis": {
+                    "valType": "boolean",
+                    "dflt": true,
+                    "role": "info",
+                    "editType": "plot",
+                    "description": "Determines whether the text nodes are clipped about the subplot axes. To show the text nodes above axis lines and tick labels, make sure to set `xaxis.layer` and `yaxis.layer` to *below traces*."
                 },
                 "orientation": {
                     "valType": "enumerated",
@@ -4597,7 +4604,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -5532,7 +5539,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -7002,7 +7009,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -7998,7 +8005,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -9160,7 +9167,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -9721,7 +9728,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -10830,7 +10837,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -12376,7 +12383,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -13327,7 +13334,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -15013,7 +15020,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -16232,7 +16239,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -17302,7 +17309,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -18806,7 +18813,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -19656,7 +19663,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -21335,7 +21342,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -21721,7 +21728,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -22564,7 +22571,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -23579,7 +23586,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -24437,6 +24444,19 @@
                             "editType": "calc",
                             "description": "Sets the marker opacity of selected points."
                         },
+                        "color": {
+                            "valType": "color",
+                            "role": "style",
+                            "editType": "calc",
+                            "description": "Sets the marker color of selected points."
+                        },
+                        "size": {
+                            "valType": "number",
+                            "min": 0,
+                            "role": "style",
+                            "editType": "calc",
+                            "description": "Sets the marker size of selected points."
+                        },
                         "editType": "calc",
                         "role": "object"
                     },
@@ -24452,6 +24472,19 @@
                             "role": "style",
                             "editType": "calc",
                             "description": "Sets the marker opacity of unselected points, applied only when a selection exists."
+                        },
+                        "color": {
+                            "valType": "color",
+                            "role": "style",
+                            "editType": "calc",
+                            "description": "Sets the marker color of unselected points, applied only when a selection exists."
+                        },
+                        "size": {
+                            "valType": "number",
+                            "min": 0,
+                            "role": "style",
+                            "editType": "calc",
+                            "description": "Sets the marker size of unselected points, applied only when a selection exists."
                         },
                         "editType": "calc",
                         "role": "object"
@@ -24566,7 +24599,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -25086,7 +25119,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -25740,7 +25773,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -27111,7 +27144,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -28630,7 +28663,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -29679,7 +29712,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -30155,7 +30188,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -30599,7 +30632,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -32137,7 +32170,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -33520,7 +33553,7 @@
                 "ids": {
                     "valType": "data_array",
                     "editType": "calc",
-                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation.",
+                    "description": "Assigns id labels to each datum. These ids for object constancy of data points during animation. Should be an array of strings, not numbers or any other type.",
                     "role": "data"
                 },
                 "customdata": {
@@ -34279,7 +34312,7 @@
                 "dflt": 20,
                 "role": "info",
                 "editType": "none",
-                "description": "Sets the default distance (in pixels) to look for data to add hover labels (-1 means no cutoff, 0 means no looking for data)"
+                "description": "Sets the default distance (in pixels) to look for data to add hover labels (-1 means no cutoff, 0 means no looking for data). This is only a real distance for hovering on point-like objects, like scatter points. For area-like objects (bars, scatter fills, etc) hovering is on inside the area and off outside, but these objects will not supersede hover on point-like objects in case of conflict."
             },
             "spikedistance": {
                 "valType": "integer",
@@ -34287,7 +34320,7 @@
                 "dflt": 20,
                 "role": "info",
                 "editType": "none",
-                "description": "Sets the default distance (in pixels) to look for data to draw spikelines to (-1 means no cutoff, 0 means no looking for data)."
+                "description": "Sets the default distance (in pixels) to look for data to draw spikelines to (-1 means no cutoff, 0 means no looking for data). As with hoverdistance, distance does not apply to area-like objects. In addition, some objects can be hovered on but will not generate spikelines, such as scatter fills."
             },
             "hoverlabel": {
                 "bgcolor": {

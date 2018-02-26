@@ -4,7 +4,7 @@
 * All rights reserved.
 * Licensed under the MIT license
 */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Plotly = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Plotly = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 'use strict';
 
 var Lib = require('../src/lib');
@@ -16066,8 +16066,10 @@ function drawRaw(gd, options, index, subplotId, xa, ya) {
                         drawArrow(dx, dy);
                     }
                     else if(!subplotId) {
-                        if(xa) update[annbase + '.x'] = options.x + dx / xa._m;
-                        else {
+                        if(xa) {
+                            update[annbase + '.x'] = xa.p2r(xa.r2p(options.x) + dx);
+
+                        } else {
                             var widthFraction = options._xsize / gs.w,
                                 xLeft = options.x + (options._xshift - options.xshift) / gs.w -
                                     widthFraction / 2;
@@ -16076,8 +16078,9 @@ function drawRaw(gd, options, index, subplotId, xa, ya) {
                                 widthFraction, 0, 1, options.xanchor);
                         }
 
-                        if(ya) update[annbase + '.y'] = options.y + dy / ya._m;
-                        else {
+                        if(ya) {
+                            update[annbase + '.y'] = ya.p2r(ya.r2p(options.y) + dy);
+                        } else {
                             var heightFraction = options._ysize / gs.h,
                                 yBottom = options.y - (options._yshift + options.yshift) / gs.h -
                                     heightFraction / 2;
@@ -19100,8 +19103,10 @@ drawing.hideOutsideRangePoint = function(d, sel, xa, ya, xcalendar, ycalendar) {
     );
 };
 
-drawing.hideOutsideRangePoints = function(traceGroups, subplot) {
+drawing.hideOutsideRangePoints = function(traceGroups, subplot, selector) {
     if(!subplot._hasClipOnAxisFalse) return;
+
+    selector = selector || '.point,.textpoint';
 
     var xa = subplot.xaxis;
     var ya = subplot.yaxis;
@@ -19111,7 +19116,7 @@ drawing.hideOutsideRangePoints = function(traceGroups, subplot) {
         var xcalendar = trace.xcalendar;
         var ycalendar = trace.ycalendar;
 
-        traceGroups.selectAll('.point,.textpoint').each(function(d) {
+        traceGroups.selectAll(selector).each(function(d) {
             drawing.hideOutsideRangePoint(d, d3.select(this), xa, ya, xcalendar, ycalendar);
         });
     });
@@ -19439,8 +19444,8 @@ drawing.pointStyle = function(s, trace, gd) {
     });
 };
 
-drawing.selectedPointStyle = function(s, trace) {
-    if(!s.size() || !trace.selectedpoints) return;
+drawing.makeSelectedPointStyleFns = function(trace) {
+    var out = {};
 
     var selectedAttrs = trace.selected || {};
     var unselectedAttrs = trace.unselected || {};
@@ -19455,40 +19460,31 @@ drawing.selectedPointStyle = function(s, trace) {
     var smoIsDefined = smo !== undefined;
     var usmoIsDefined = usmo !== undefined;
 
-    s.each(function(d) {
-        var pt = d3.select(this);
+    out.opacityFn = function(d) {
         var dmo = d.mo;
         var dmoIsDefined = dmo !== undefined;
-        var mo2;
 
         if(dmoIsDefined || smoIsDefined || usmoIsDefined) {
             if(d.selected) {
-                if(smoIsDefined) mo2 = smo;
+                if(smoIsDefined) return smo;
             } else {
-                if(usmoIsDefined) mo2 = usmo;
-                else mo2 = DESELECTDIM * (dmoIsDefined ? dmo : mo);
+                if(usmoIsDefined) return usmo;
+                return DESELECTDIM * (dmoIsDefined ? dmo : mo);
             }
         }
-
-        if(mo2 !== undefined) pt.style('opacity', mo2);
-    });
+    };
 
     var smc = selectedMarker.color;
     var usmc = unselectedMarker.color;
 
     if(smc || usmc) {
-        s.each(function(d) {
-            var pt = d3.select(this);
-            var mc2;
-
+        out.colorFn = function(d) {
             if(d.selected) {
-                if(smc) mc2 = smc;
+                if(smc) return smc;
             } else {
-                if(usmc) mc2 = usmc;
+                if(usmc) return usmc;
             }
-
-            if(mc2) Color.fill(pt, mc2);
-        });
+        };
     }
 
     var sms = selectedMarker.size;
@@ -19496,18 +19492,45 @@ drawing.selectedPointStyle = function(s, trace) {
     var smsIsDefined = sms !== undefined;
     var usmsIsDefined = usms !== undefined;
 
-    if(Registry.traceIs(trace, 'symbols') && (smsIsDefined || usmsIsDefined)) {
+    if(smsIsDefined || usmsIsDefined) {
+        out.sizeFn = function(d) {
+            var mrc = d.mrc;
+            if(d.selected) {
+                return smsIsDefined ? sms / 2 : mrc;
+            } else {
+                return usmsIsDefined ? usms / 2 : mrc;
+            }
+        };
+    }
+
+    return out;
+};
+
+drawing.selectedPointStyle = function(s, trace) {
+    if(!s.size() || !trace.selectedpoints) return;
+
+    var fns = drawing.makeSelectedPointStyleFns(trace);
+    var marker = trace.marker || {};
+
+    s.each(function(d) {
+        var pt = d3.select(this);
+        var mo2 = fns.opacityFn(d);
+        if(mo2 !== undefined) pt.style('opacity', mo2);
+    });
+
+    if(fns.colorFn) {
         s.each(function(d) {
             var pt = d3.select(this);
-            var mrc = d.mrc;
-            var mx = d.mx || marker.symbol || 0;
-            var mrc2;
+            var mc2 = fns.colorFn(d);
+            if(mc2) Color.fill(pt, mc2);
+        });
+    }
 
-            if(d.selected) {
-                mrc2 = (smsIsDefined) ? sms / 2 : mrc;
-            } else {
-                mrc2 = (usmsIsDefined) ? usms / 2 : mrc;
-            }
+    if(Registry.traceIs(trace, 'symbols') && fns.sizeFn) {
+        s.each(function(d) {
+            var pt = d3.select(this);
+            var mx = d.mx || marker.symbol || 0;
+            var mrc2 = fns.sizeFn(d);
 
             pt.attr('d', makePointPath(drawing.symbolNumber(mx), mrc2));
 
@@ -20742,18 +20765,26 @@ module.exports = function makeComputeError(opts) {
         symmetric = opts.symmetric;
 
     if(type === 'data') {
-        var array = opts.array,
-            arrayminus = opts.arrayminus;
+        var array = opts.array || [];
 
-        if(symmetric || arrayminus === undefined) {
+        if(symmetric) {
             return function computeError(dataPt, index) {
                 var val = +(array[index]);
                 return [val, val];
             };
         }
         else {
+            var arrayminus = opts.arrayminus || [];
             return function computeError(dataPt, index) {
-                return [+arrayminus[index], +array[index]];
+                var val = +array[index];
+                var valMinus = +arrayminus[index];
+                // in case one is present and the other is missing, fill in 0
+                // so we still see the present one. Mostly useful during manual
+                // data entry.
+                if(!isNaN(val) || !isNaN(valMinus)) {
+                    return [valMinus || 0, val || 0];
+                }
+                return [NaN, NaN];
             };
         }
     }
@@ -20852,12 +20883,10 @@ module.exports = function(traceIn, traceOut, defaultColor, opts) {
     }
 
     if(type === 'data') {
-        var array = coerce('array');
-        if(!array) containerOut.array = [];
+        coerce('array');
         coerce('traceref');
         if(!symmetric) {
-            var arrayminus = coerce('arrayminus');
-            if(!arrayminus) containerOut.arrayminus = [];
+            coerce('arrayminus');
             coerce('tracerefminus');
         }
     }
@@ -21020,6 +21049,7 @@ module.exports = function plot(traces, plotinfo, transitionOpts) {
 
             var path;
 
+            var yerror = errorbar.select('path.yerror');
             if(yObj.visible && isNumeric(coords.x) &&
                     isNumeric(coords.yh) &&
                     isNumeric(coords.ys)) {
@@ -21031,8 +21061,6 @@ module.exports = function plot(traces, plotinfo, transitionOpts) {
 
 
                 if(!coords.noYS) path += 'm-' + yw + ',0h' + (2 * yw); // shoe
-
-                var yerror = errorbar.select('path.yerror');
 
                 isNew = !yerror.size();
 
@@ -21049,7 +21077,9 @@ module.exports = function plot(traces, plotinfo, transitionOpts) {
 
                 yerror.attr('d', path);
             }
+            else yerror.remove();
 
+            var xerror = errorbar.select('path.xerror');
             if(xObj.visible && isNumeric(coords.y) &&
                     isNumeric(coords.xh) &&
                     isNumeric(coords.xs)) {
@@ -21060,8 +21090,6 @@ module.exports = function plot(traces, plotinfo, transitionOpts) {
                     'm0,-' + xw + 'H' + coords.xs; // bar
 
                 if(!coords.noXS) path += 'm0,-' + xw + 'v' + (2 * xw); // shoe
-
-                var xerror = errorbar.select('path.xerror');
 
                 isNew = !xerror.size();
 
@@ -21078,6 +21106,7 @@ module.exports = function plot(traces, plotinfo, transitionOpts) {
 
                 xerror.attr('d', path);
             }
+            else xerror.remove();
         });
     });
 };
@@ -21304,9 +21333,6 @@ module.exports = function click(gd, evt, subplot) {
 'use strict';
 
 module.exports = {
-    // max pixels away from mouse to allow a point to highlight
-    MAXDIST: 20,
-
     // hover labels for multiple horizontal bars get tilted by this angle
     YANGLE: 60,
 
@@ -21362,7 +21388,6 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
 'use strict';
 
 var Lib = require('../../lib');
-var constants = require('./constants');
 
 // look for either subplot or xaxis and yaxis attributes
 exports.getSubplot = function getSubplot(trace) {
@@ -21415,19 +21440,16 @@ exports.getClosest = function getClosest(cd, distfn, pointData) {
     return pointData;
 };
 
-// for bar charts and others with finite-size objects: you must be inside
-// it to see its hover info, so distance is infinite outside.
-// But make distance inside be at least 1/4 MAXDIST, and a little bigger
-// for bigger bars, to prioritize scatter and smaller bars over big bars
-//
-// note that for closest mode, two inbox's will get added in quadrature
-// args are (signed) difference from the two opposite edges
-// count one edge as in, so that over continuous ranges you never get a gap
-exports.inbox = function inbox(v0, v1) {
-    if(v0 * v1 < 0 || v0 === 0) {
-        return constants.MAXDIST * (0.6 - 0.3 / Math.max(3, Math.abs(v0 - v1)));
-    }
-    return Infinity;
+/*
+ * pseudo-distance function for hover effects on areas: inside the region
+ * distance is finite (`passVal`), outside it's Infinity.
+ *
+ * @param {number} v0: signed difference between the current position and the left edge
+ * @param {number} v1: signed difference between the current position and the right edge
+ * @param {number} passVal: the value to return on success
+ */
+exports.inbox = function inbox(v0, v1, passVal) {
+    return (v0 * v1 < 0 || v0 === 0) ? passVal : Infinity;
 };
 
 exports.quadrature = function quadrature(dx, dy) {
@@ -21577,7 +21599,7 @@ function getPointData(val, pointNumber) {
     }
 }
 
-},{"../../lib":163,"./constants":83}],86:[function(require,module,exports){
+},{"../../lib":163}],86:[function(require,module,exports){
 /**
 * Copyright 2012-2018, Plotly, Inc.
 * All rights reserved.
@@ -21724,8 +21746,7 @@ exports.loneHover = function loneHover(hoverItem, opts) {
         rotateLabels: false,
         bgColor: opts.bgColor || Color.background,
         container: container3,
-        outerContainer: outerContainer3,
-        hoverdistance: constants.MAXDIST
+        outerContainer: outerContainer3
     };
 
     var hoverLabel = createHoverText([pointData], fullOpts, opts.gd);
@@ -21742,9 +21763,10 @@ function _hover(gd, evt, subplot, noHoverEvent) {
     // use those instead of finding overlayed plots
     var subplots = Array.isArray(subplot) ? subplot : [subplot];
 
-    var fullLayout = gd._fullLayout,
-        plots = fullLayout._plots || [],
-        plotinfo = plots[subplot];
+    var fullLayout = gd._fullLayout;
+    var plots = fullLayout._plots || [];
+    var plotinfo = plots[subplot];
+    var hasCartesian = fullLayout._has('cartesian');
 
     // list of all overlaid subplots to look at
     if(plotinfo) {
@@ -21931,9 +21953,29 @@ function _hover(gd, evt, subplot, noHoverEvent) {
             trace: trace,
             xa: xaArray[subploti],
             ya: yaArray[subploti],
+
+            // max distances for hover and spikes - for points that want to show but do not
+            // want to override other points, set distance/spikeDistance equal to max*Distance
+            // and it will not get filtered out but it will be guaranteed to have a greater
+            // distance than any point that calculated a real distance.
+            maxHoverDistance: hoverdistance,
+            maxSpikeDistance: spikedistance,
+
             // point properties - override all of these
             index: false, // point index in trace - only used by plotly.js hoverdata consumers
             distance: Math.min(distance, hoverdistance), // pixel distance or pseudo-distance
+
+            // distance/pseudo-distance for spikes. This distance should always be calculated
+            // as if in "closest" mode, and should only be set if this point should
+            // generate a spike.
+            spikeDistance: Infinity,
+
+            // in some cases the spikes have different positioning from the hover label
+            // they don't need x0/x1, just one position
+            xSpike: undefined,
+            ySpike: undefined,
+
+            // where and how to display the hover label
             color: Color.defaultLine, // trace color
             name: trace.name,
             x0: undefined,
@@ -21998,7 +22040,8 @@ function _hover(gd, evt, subplot, noHoverEvent) {
         }
 
         // in closest mode, remove any existing (farther) points
-        // and don't look any farther than this latest point (or points, if boxes)
+        // and don't look any farther than this latest point (or points, some
+        // traces like box & violin make multiple hover labels at once)
         if(hovermode === 'closest' && hoverData.length > closedataPreviousLength) {
             hoverData.splice(0, closedataPreviousLength);
             distance = hoverData[0].distance;
@@ -22006,12 +22049,19 @@ function _hover(gd, evt, subplot, noHoverEvent) {
 
         // Now if there is range to look in, find the points to draw the spikelines
         // Do it only if there is no hoverData
-        if(fullLayout._has('cartesian') && (spikedistance !== 0)) {
+        if(hasCartesian && (spikedistance !== 0)) {
             if(hoverData.length === 0) {
                 pointData.distance = spikedistance;
                 pointData.index = false;
                 var closestPoints = trace._module.hoverPoints(pointData, xval, yval, 'closest', fullLayout._hoverlayer);
                 if(closestPoints) {
+                    closestPoints = closestPoints.filter(function(point) {
+                        // some hover points, like scatter fills, do not allow spikes,
+                        // so will generate a hover point but without a valid spikeDistance
+                        return point.spikeDistance <= spikedistance;
+                    });
+                }
+                if(closestPoints && closestPoints.length) {
                     var tmpPoint;
                     var closestVPoints = closestPoints.filter(function(point) {
                         return point.xa.showspikes;
@@ -22019,8 +22069,8 @@ function _hover(gd, evt, subplot, noHoverEvent) {
                     if(closestVPoints.length) {
                         var closestVPt = closestVPoints[0];
                         if(isNumeric(closestVPt.x0) && isNumeric(closestVPt.y0)) {
-                            tmpPoint = fillClosestPoint(closestVPt);
-                            if(!spikePoints.vLinePoint || (spikePoints.vLinePoint.distance > tmpPoint.distance)) {
+                            tmpPoint = fillSpikePoint(closestVPt);
+                            if(!spikePoints.vLinePoint || (spikePoints.vLinePoint.spikeDistance > tmpPoint.spikeDistance)) {
                                 spikePoints.vLinePoint = tmpPoint;
                             }
                         }
@@ -22032,8 +22082,8 @@ function _hover(gd, evt, subplot, noHoverEvent) {
                     if(closestHPoints.length) {
                         var closestHPt = closestHPoints[0];
                         if(isNumeric(closestHPt.x0) && isNumeric(closestHPt.y0)) {
-                            tmpPoint = fillClosestPoint(closestHPt);
-                            if(!spikePoints.hLinePoint || (spikePoints.hLinePoint.distance > tmpPoint.distance)) {
+                            tmpPoint = fillSpikePoint(closestHPt);
+                            if(!spikePoints.hLinePoint || (spikePoints.hLinePoint.spikeDistance > tmpPoint.spikeDistance)) {
                                 spikePoints.hLinePoint = tmpPoint;
                             }
                         }
@@ -22044,47 +22094,28 @@ function _hover(gd, evt, subplot, noHoverEvent) {
     }
 
     function selectClosestPoint(pointsData, spikedistance) {
-        if(!pointsData.length) return null;
-        var resultPoint;
-        var pointsDistances = pointsData.map(function(point, index) {
-            var xa = point.xa,
-                ya = point.ya,
-                xpx = xa.c2p(xval),
-                ypx = ya.c2p(yval),
-                dxy = function(point) {
-                    var rad = point.kink,
-                        dx = (point.x1 + point.x0) / 2 - xpx,
-                        dy = (point.y1 + point.y0) / 2 - ypx;
-                    return Math.max(Math.sqrt(dx * dx + dy * dy) - rad, 1 - 3 / rad);
-                };
-            var distance = dxy(point);
-            return {distance: distance, index: index};
-        });
-        pointsDistances = pointsDistances
-            .filter(function(point) {
-                return point.distance <= spikedistance;
-            })
-            .sort(function(a, b) {
-                return a.distance - b.distance;
-            });
-        if(pointsDistances.length) {
-            resultPoint = pointsData[pointsDistances[0].index];
-        } else {
-            resultPoint = null;
+        var resultPoint = null;
+        var minDistance = Infinity;
+        var thisSpikeDistance;
+        for(var i = 0; i < pointsData.length; i++) {
+            thisSpikeDistance = pointsData[i].spikeDistance;
+            if(thisSpikeDistance < minDistance && thisSpikeDistance <= spikedistance) {
+                resultPoint = pointsData[i];
+                minDistance = thisSpikeDistance;
+            }
         }
         return resultPoint;
     }
 
-    function fillClosestPoint(point) {
+    function fillSpikePoint(point) {
         if(!point) return null;
         return {
             xa: point.xa,
             ya: point.ya,
-            x0: point.x0,
-            x1: point.x1,
-            y0: point.y0,
-            y1: point.y1,
+            x: point.xSpike !== undefined ? point.xSpike : (point.x0 + point.x1) / 2,
+            y: point.ySpike !== undefined ? point.ySpike : (point.y0 + point.y1) / 2,
             distance: point.distance,
+            spikeDistance: point.spikeDistance,
             curveNumber: point.trace.index,
             color: point.color,
             pointNumber: point.index
@@ -22105,26 +22136,26 @@ function _hover(gd, evt, subplot, noHoverEvent) {
     gd._spikepoints = newspikepoints;
 
     // Now if it is not restricted by spikedistance option, set the points to draw the spikelines
-    if(fullLayout._has('cartesian') && (spikedistance !== 0)) {
+    if(hasCartesian && (spikedistance !== 0)) {
         if(hoverData.length !== 0) {
             var tmpHPointData = hoverData.filter(function(point) {
                 return point.ya.showspikes;
             });
             var tmpHPoint = selectClosestPoint(tmpHPointData, spikedistance);
-            spikePoints.hLinePoint = fillClosestPoint(tmpHPoint);
+            spikePoints.hLinePoint = fillSpikePoint(tmpHPoint);
 
             var tmpVPointData = hoverData.filter(function(point) {
                 return point.xa.showspikes;
             });
             var tmpVPoint = selectClosestPoint(tmpVPointData, spikedistance);
-            spikePoints.vLinePoint = fillClosestPoint(tmpVPoint);
+            spikePoints.vLinePoint = fillSpikePoint(tmpVPoint);
         }
     }
 
     // if hoverData is empty check for the spikes to draw and quit if there are none
     if(hoverData.length === 0) {
         var result = dragElement.unhoverRaw(gd, evt);
-        if(fullLayout._has('cartesian') && ((spikePoints.hLinePoint !== null) || (spikePoints.vLinePoint !== null))) {
+        if(hasCartesian && ((spikePoints.hLinePoint !== null) || (spikePoints.vLinePoint !== null))) {
             if(spikesChanged(oldspikepoints)) {
                 createSpikelines(spikePoints, spikelineOpts);
             }
@@ -22132,7 +22163,7 @@ function _hover(gd, evt, subplot, noHoverEvent) {
         return result;
     }
 
-    if(fullLayout._has('cartesian')) {
+    if(hasCartesian) {
         if(spikesChanged(oldspikepoints)) {
             createSpikelines(spikePoints, spikelineOpts);
         }
@@ -22233,20 +22264,31 @@ function createHoverText(hoverData, opts, gd) {
     // show the common label, if any, on the axis
     // never show a common label in array mode,
     // even if sometimes there could be one
-    var showCommonLabel = c0.distance <= opts.hoverdistance &&
-                          (hovermode === 'x' || hovermode === 'y');
+    var showCommonLabel = (
+        (t0 !== undefined) &&
+        (c0.distance <= opts.hoverdistance) &&
+        (hovermode === 'x' || hovermode === 'y')
+    );
 
     // all hover traces hoverinfo must contain the hovermode
     // to have common labels
-    var i, traceHoverinfo;
-    for(i = 0; i < hoverData.length; i++) {
-        traceHoverinfo = hoverData[i].hoverinfo || hoverData[i].trace.hoverinfo;
-        var parts = Array.isArray(traceHoverinfo) ? traceHoverinfo : traceHoverinfo.split('+');
-        if(parts.indexOf('all') === -1 &&
-            parts.indexOf(hovermode) === -1) {
-            showCommonLabel = false;
-            break;
+    if(showCommonLabel) {
+        var i, traceHoverinfo;
+        var allHaveZ = true;
+        for(i = 0; i < hoverData.length; i++) {
+            if(allHaveZ && hoverData[i].zLabel === undefined) allHaveZ = false;
+
+            traceHoverinfo = hoverData[i].hoverinfo || hoverData[i].trace.hoverinfo;
+            var parts = Array.isArray(traceHoverinfo) ? traceHoverinfo : traceHoverinfo.split('+');
+            if(parts.indexOf('all') === -1 &&
+                parts.indexOf(hovermode) === -1) {
+                showCommonLabel = false;
+                break;
+            }
         }
+
+        // xyz labels put all info in their main label, so have no need of a common label
+        if(allHaveZ) showCommonLabel = false;
     }
 
     var commonLabel = container.selectAll('g.axistext')
@@ -22750,7 +22792,9 @@ function cleanPoint(d, hovermode) {
     fill('fontColor', 'htc', 'hoverlabel.font.color');
     fill('nameLength', 'hnl', 'hoverlabel.namelength');
 
-    d.posref = hovermode === 'y' ? (d.x0 + d.x1) / 2 : (d.y0 + d.y1) / 2;
+    d.posref = hovermode === 'y' ?
+        (d.xa._offset + (d.x0 + d.x1) / 2) :
+        (d.ya._offset + (d.y0 + d.y1) / 2);
 
     // then constrain all the positions to be on the plot
     d.x0 = Lib.constrain(d.x0, 0, d.xa._length);
@@ -22842,8 +22886,8 @@ function createSpikelines(closestPoints, opts) {
             hLinePointX = evt.pointerX;
             hLinePointY = evt.pointerY;
         } else {
-            hLinePointX = xa._offset + (hLinePoint.x0 + hLinePoint.x1) / 2;
-            hLinePointY = ya._offset + (hLinePoint.y0 + hLinePoint.y1) / 2;
+            hLinePointX = xa._offset + hLinePoint.x;
+            hLinePointY = ya._offset + hLinePoint.y;
         }
         var dfltHLineColor = tinycolor.readability(hLinePoint.color, contrastColor) < 1.5 ?
             Color.contrast(contrastColor) : hLinePoint.color;
@@ -22918,8 +22962,8 @@ function createSpikelines(closestPoints, opts) {
             vLinePointX = evt.pointerX;
             vLinePointY = evt.pointerY;
         } else {
-            vLinePointX = xa._offset + (vLinePoint.x0 + vLinePoint.x1) / 2;
-            vLinePointY = ya._offset + (vLinePoint.y0 + vLinePoint.y1) / 2;
+            vLinePointX = xa._offset + vLinePoint.x;
+            vLinePointY = ya._offset + vLinePoint.y;
         }
         var dfltVLineColor = tinycolor.readability(vLinePoint.color, contrastColor) < 1.5 ?
         Color.contrast(contrastColor) : vLinePoint.color;
@@ -34698,6 +34742,22 @@ lib.subplotSort = function(a, b) {
     return numB - numA;
 };
 
+// repeatable pseudorandom generator
+var randSeed = 2000000000;
+
+lib.seedPseudoRandom = function() {
+    randSeed = 2000000000;
+};
+
+lib.pseudoRandom = function() {
+    var lastVal = randSeed;
+    randSeed = (69069 * randSeed + 1) % 4294967296;
+    // don't let consecutive vals be too close together
+    // gets away from really trying to be random, in favor of better local uniformity
+    if(Math.abs(randSeed - lastVal) < 429496729) return lib.pseudoRandom();
+    return randSeed / 4294967296;
+};
+
 },{"../constants/numerical":146,"./angles":151,"./clean_number":152,"./coerce":153,"./dates":154,"./ensure_array":155,"./extend":157,"./filter_unique":158,"./filter_visible":159,"./geometry2d":160,"./get_graph_div":161,"./identity":162,"./is_array":164,"./is_plain_object":165,"./keyed_container":166,"./localize":167,"./loggers":168,"./matrix":169,"./mod":170,"./nested_property":171,"./noop":172,"./notifier":173,"./push_unique":176,"./regex":178,"./relative_attr":179,"./relink_private":180,"./search":181,"./stats":183,"./throttle":185,"./to_log_range":186,"d3":10,"fast-isnumeric":13}],164:[function(require,module,exports){
 /**
 * Copyright 2012-2018, Plotly, Inc.
@@ -36292,13 +36352,13 @@ var isPlainObject = require('./is_plain_object');
  * This prevents deepCopying massive structures like a webgl context.
  */
 module.exports = function relinkPrivateKeys(toContainer, fromContainer) {
-    var keys = Object.keys(fromContainer || {});
+    for(var k in fromContainer) {
+        var fromVal = fromContainer[k];
+        var toVal = toContainer[k];
 
-    for(var i = 0; i < keys.length; i++) {
-        var k = keys[i],
-            fromVal = fromContainer[k],
-            toVal = toContainer[k];
-
+        if(toVal === fromVal) {
+            continue;
+        }
         if(k.charAt(0) === '_' || typeof fromVal === 'function') {
 
             // if it already exists at this point, it's something
@@ -36309,9 +36369,15 @@ module.exports = function relinkPrivateKeys(toContainer, fromContainer) {
         }
         else if(isArray(fromVal) && isArray(toVal) && isPlainObject(fromVal[0])) {
 
+            // filter out data_array items that can contain user objects
+            // most of the time the toVal === fromVal check will catch these early
+            // but if the user makes new ones we also don't want to recurse in.
+            if(k === 'customdata' || k === 'ids') continue;
+
             // recurse into arrays containers
-            for(var j = 0; j < fromVal.length; j++) {
-                if(isPlainObject(fromVal[j]) && isPlainObject(toVal[j])) {
+            var minLen = Math.min(fromVal.length, toVal.length);
+            for(var j = 0; j < minLen; j++) {
+                if((toVal[j] !== fromVal[j]) && isPlainObject(fromVal[j]) && isPlainObject(toVal[j])) {
                     relinkPrivateKeys(toVal[j], fromVal[j]);
                 }
             }
@@ -39785,6 +39851,7 @@ function _restyle(gd, aobj, traces) {
     // for the undo / redo queue
     var redoit = {},
         undoit = {},
+        flagAxForDelete = {},
         axlist;
 
     // make a new empty vals array for undoit
@@ -39928,6 +39995,9 @@ function _restyle(gd, aobj, traces) {
                 } else if(Registry.traceIs(cont, 'cartesian')) {
                     Lib.nestedProperty(cont, 'marker.colors')
                         .set(Lib.nestedProperty(cont, 'marker.color').get());
+                    // look for axes that are no longer in use and delete them
+                    flagAxForDelete[cont.xaxis || 'x'] = true;
+                    flagAxForDelete[cont.yaxis || 'y'] = true;
                 }
             }
 
@@ -40032,6 +40102,26 @@ function _restyle(gd, aobj, traces) {
             autorangeOn = true;
             break;
         }
+    }
+
+    // check axes we've flagged for possible deletion
+    // flagAxForDelete is a hash so we can make sure we only get each axis once
+    var axListForDelete = Object.keys(flagAxForDelete);
+    axisLoop:
+    for(i = 0; i < axListForDelete.length; i++) {
+        var axId = axListForDelete[i],
+            axLetter = axId.charAt(0),
+            axAttr = axLetter + 'axis';
+
+        for(var j = 0; j < data.length; j++) {
+            if(Registry.traceIs(data[j], 'cartesian') &&
+                    (data[j][axAttr] || axLetter) === axId) {
+                continue axisLoop;
+            }
+        }
+
+        // no data on this axis - delete it.
+        doextra('LAYOUT' + Plotly.Axes.id2name(axId), null, 0);
     }
 
     // combine a few flags together;
@@ -42852,7 +42942,7 @@ exports.lsInner = function(gd) {
 
         for(i = 0; i < cartesianConstants.traceLayerClasses.length; i++) {
             var layer = cartesianConstants.traceLayerClasses[i];
-            if(layer !== 'scatterlayer') {
+            if(layer !== 'scatterlayer' && layer !== 'barlayer') {
                 plotinfo.plot.selectAll('g.' + layer).call(Drawing.setClipUrl, layerClipId);
             }
         }
@@ -47775,6 +47865,10 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
             return;
         }
 
+        if(redrawTimer === null) {
+            clearSelect(zoomlayer);
+        }
+
         // If a transition is in progress, then disable any behavior:
         if(gd._transitioningWithDuration) {
             e.preventDefault();
@@ -48206,6 +48300,9 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
                 .call(Drawing.setTextPointsScale, xScaleFactor2, yScaleFactor2);
             traceGroups
                 .call(Drawing.hideOutsideRangePoints, subplot);
+
+            subplot.plot.selectAll('.barlayer .trace')
+                .call(Drawing.hideOutsideRangePoints, subplot, '.bartext');
         }
     }
 
@@ -57656,12 +57753,13 @@ module.exports = fileSaver;
 'use strict';
 
 exports.getDelay = function(fullLayout) {
-
-    // polar clears fullLayout._has for some reason
     if(!fullLayout._has) return 0;
 
-    // maybe we should add a 'gl' (and 'svg') layoutCategory ??
-    return (fullLayout._has('gl3d') || fullLayout._has('gl2d')) ? 500 : 0;
+    return (
+        fullLayout._has('gl3d') ||
+        fullLayout._has('gl2d') ||
+        fullLayout._has('mapbox')
+    ) ? 500 : 0;
 };
 
 exports.getRedrawFunc = function(gd) {
@@ -58209,6 +58307,10 @@ module.exports = {
         
     },
 
+    cliponaxis: extendFlat({}, scatterAttrs.cliponaxis, {
+        
+    }),
+
     orientation: {
         valType: 'enumerated',
         
@@ -58440,6 +58542,7 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         coerce('constraintext');
         coerce('selected.textfont.color');
         coerce('unselected.textfont.color');
+        coerce('cliponaxis');
     }
 
     handleStyleDefaults(traceIn, traceOut, coerce, defaultColor, layout);
@@ -58473,8 +58576,10 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     var trace = cd[0].trace;
     var t = cd[0].t;
     var isClosest = (hovermode === 'closest');
+    var maxHoverDistance = pointData.maxHoverDistance;
+    var maxSpikeDistance = pointData.maxSpikeDistance;
 
-    var posVal, sizeVal, posLetter, sizeLetter, dx, dy;
+    var posVal, sizeVal, posLetter, sizeLetter, dx, dy, pRangeCalc;
 
     function thisBarMinPos(di) { return di[posLetter] - di.w / 2; }
     function thisBarMaxPos(di) { return di[posLetter] + di.w / 2; }
@@ -58503,15 +58608,26 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
             return Math.max(thisBarMaxPos(di), di.p + t.bardelta / 2);
         };
 
+    function _positionFn(_minPos, _maxPos) {
+        // add a little to the pseudo-distance for wider bars, so that like scatter,
+        // if you are over two overlapping bars, the narrower one wins.
+        return Fx.inbox(_minPos - posVal, _maxPos - posVal,
+            maxHoverDistance + Math.min(1, Math.abs(_maxPos - _minPos) / pRangeCalc) - 1);
+    }
+
     function positionFn(di) {
-        return Fx.inbox(minPos(di) - posVal, maxPos(di) - posVal);
+        return _positionFn(minPos(di), maxPos(di));
+    }
+
+    function thisBarPositionFn(di) {
+        return _positionFn(thisBarMinPos(di), thisBarMaxPos(di));
     }
 
     function sizeFn(di) {
         // add a gradient so hovering near the end of a
         // bar makes it a little closer match
-        return Fx.inbox(di.b - sizeVal, di[sizeLetter] - sizeVal) +
-            (di[sizeLetter] - sizeVal) / (di[sizeLetter] - di.b);
+        return Fx.inbox(di.b - sizeVal, di[sizeLetter] - sizeVal,
+            maxHoverDistance + (di[sizeLetter] - sizeVal) / (di[sizeLetter] - di.b) - 1);
     }
 
     if(trace.orientation === 'h') {
@@ -58534,7 +58650,10 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     var pa = pointData[posLetter + 'a'];
     var sa = pointData[sizeLetter + 'a'];
 
-    var distfn = Fx.getDistanceFunction(hovermode, dx, dy);
+    pRangeCalc = Math.abs(pa.r2c(pa.range[1]) - pa.r2c(pa.range[0]));
+
+    function dxy(di) { return (dx(di) + dy(di)) / 2; }
+    var distfn = Fx.getDistanceFunction(hovermode, dx, dy, dxy);
     Fx.getClosest(cd, distfn, pointData);
 
     // skip the rest (for this trace) if we didn't find a close point
@@ -58569,6 +58688,12 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     pointData[posLetter + '0'] = pa.c2p(minPos(di), true);
     pointData[posLetter + '1'] = pa.c2p(maxPos(di), true);
     pointData[posLetter + 'LabelVal'] = di.p;
+
+    // spikelines always want "closest" distance regardless of hovermode
+    pointData.spikeDistance = (sizeFn(di) + thisBarPositionFn(di)) / 2 + maxSpikeDistance - maxHoverDistance;
+    // they also want to point to the data value, regardless of where the label goes
+    // in case of bars shifted within groups
+    pointData[posLetter + 'Spike'] = pa.c2p(di.p, true);
 
     fillHoverText(di, trace, pointData);
     ErrorBars.hoverInfo(di, trace, pointData);
@@ -58860,15 +58985,26 @@ module.exports = function plot(gd, plotinfo, cdbar) {
                     bar.append('path')
                         .style('vector-effect', 'non-scaling-stroke')
                         .attr('d',
-                            'M' + x0 + ',' + y0 + 'V' + y1 + 'H' + x1 + 'V' + y0 + 'Z');
+                            'M' + x0 + ',' + y0 + 'V' + y1 + 'H' + x1 + 'V' + y0 + 'Z')
+                        .call(Drawing.setClipUrl, plotinfo.layerClipId);
 
                     appendBarText(gd, bar, d, i, x0, x1, y0, y1);
+
+                    if(plotinfo.layerClipId) {
+                        Drawing.hideOutsideRangePoint(d[i], bar.select('text'), xa, ya, trace.xcalendar, trace.ycalendar);
+                    }
                 });
         });
 
     // error bars are on the top
     bartraces.call(ErrorBars.plot, plotinfo);
 
+    // lastly, clip points groups of `cliponaxis !== false` traces
+    // on `plotinfo._hasClipOnAxisFalse === true` subplots
+    bartraces.each(function(d) {
+        var hasClipOnAxisFalse = d[0].trace.cliponaxis === false;
+        Drawing.setClipUrl(d3.select(this), hasClipOnAxisFalse ? null : plotinfo.layerClipId);
+    });
 };
 
 function appendBarText(gd, bar, calcTrace, i, x0, x1, y0, y1) {
@@ -60709,31 +60845,29 @@ function hoverOnBoxes(pointData, xval, yval, hovermode) {
     var isViolin = trace.type === 'violin';
     var closeBoxData = [];
 
-    var pLetter, vLetter, pAxis, vAxis, vVal, pVal, dx, dy;
+    var pLetter, vLetter, pAxis, vAxis, vVal, pVal, dx, dy, dPos,
+        hoverPseudoDistance, spikePseudoDistance;
 
-    // closest mode: handicap box plots a little relative to others
-    // adjust inbox w.r.t. to calculate box size
-    var boxDelta = (hovermode === 'closest' && !isViolin) ? 2.5 * t.bdPos : t.bdPos;
+    var boxDelta = t.bdPos;
     var shiftPos = function(di) { return di.pos + t.bPos - pVal; };
-    var dPos;
 
     if(isViolin && trace.side !== 'both') {
         if(trace.side === 'positive') {
             dPos = function(di) {
                 var pos = shiftPos(di);
-                return Fx.inbox(pos, pos + boxDelta);
+                return Fx.inbox(pos, pos + boxDelta, hoverPseudoDistance);
             };
         }
         if(trace.side === 'negative') {
             dPos = function(di) {
                 var pos = shiftPos(di);
-                return Fx.inbox(pos - boxDelta, pos);
+                return Fx.inbox(pos - boxDelta, pos, hoverPseudoDistance);
             };
         }
     } else {
         dPos = function(di) {
             var pos = shiftPos(di);
-            return Fx.inbox(pos - boxDelta, pos + boxDelta);
+            return Fx.inbox(pos - boxDelta, pos + boxDelta, hoverPseudoDistance);
         };
     }
 
@@ -60741,11 +60875,11 @@ function hoverOnBoxes(pointData, xval, yval, hovermode) {
 
     if(isViolin) {
         dVal = function(di) {
-            return Fx.inbox(di.span[0] - vVal, di.span[1] - vVal);
+            return Fx.inbox(di.span[0] - vVal, di.span[1] - vVal, hoverPseudoDistance);
         };
     } else {
         dVal = function(di) {
-            return Fx.inbox(di.min - vVal, di.max - vVal);
+            return Fx.inbox(di.min - vVal, di.max - vVal, hoverPseudoDistance);
         };
     }
 
@@ -60769,7 +60903,13 @@ function hoverOnBoxes(pointData, xval, yval, hovermode) {
         vAxis = ya;
     }
 
-    var distfn = Fx.getDistanceFunction(hovermode, dx, dy);
+    // if two boxes are overlaying, let the narrowest one win
+    var pseudoDistance = Math.min(1, boxDelta / Math.abs(pAxis.r2c(pAxis.range[1]) - pAxis.r2c(pAxis.range[0])));
+    hoverPseudoDistance = pointData.maxHoverDistance - pseudoDistance;
+    spikePseudoDistance = pointData.maxSpikeDistance - pseudoDistance;
+
+    function dxy(di) { return (dx(di) + dy(di)) / 2; }
+    var distfn = Fx.getDistanceFunction(hovermode, dx, dy, dxy);
     Fx.getClosest(cd, distfn, pointData);
 
     // skip the rest (for this trace) if we didn't find a close point
@@ -60789,6 +60929,10 @@ function hoverOnBoxes(pointData, xval, yval, hovermode) {
 
     Axes.tickText(pAxis, pAxis.c2l(di.pos), 'hover').text;
     pointData[pLetter + 'LabelVal'] = di.pos;
+
+    var spikePosAttr = pLetter + 'Spike';
+    pointData.spikeDistance = dxy(di) * spikePseudoDistance / hoverPseudoDistance;
+    pointData[spikePosAttr] = pAxis.c2p(di.pos, true);
 
     // box plots: each "point" gets many labels
     var usedVals = {};
@@ -60819,8 +60963,10 @@ function hoverOnBoxes(pointData, xval, yval, hovermode) {
         if(attr === 'mean' && ('sd' in di) && trace.boxmean === 'sd') {
             pointData2[vLetter + 'err'] = di.sd;
         }
-        // only keep name on the first item (median)
+        // only keep name and spikes on the first item (median)
         pointData.name = '';
+        pointData.spikeDistance = undefined;
+        pointData[spikePosAttr] = undefined;
 
         closeBoxData.push(pointData2);
     }
@@ -60884,8 +61030,12 @@ function hoverOnPoints(pointData, xval, yval) {
         xLabelVal: pt.x,
         y0: yc - rad,
         y1: yc + rad,
-        yLabelVal: pt.y
+        yLabelVal: pt.y,
+        spikeDistance: pointData.distance
     });
+    var pLetter = trace.orientation === 'h' ? 'y' : 'x';
+    var pa = trace.orientation === 'h' ? ya : xa;
+    closePtData[pLetter + 'Spike'] = pa.c2p(di.pos, true);
     fillHoverText(pt, trace, closePtData);
 
     return closePtData;
@@ -61028,22 +61178,6 @@ var d3 = require('d3');
 
 var Lib = require('../../lib');
 var Drawing = require('../../components/drawing');
-
-// repeatable pseudorandom generator
-var randSeed = 2000000000;
-
-function seed() {
-    randSeed = 2000000000;
-}
-
-function rand() {
-    var lastVal = randSeed;
-    randSeed = (69069 * randSeed + 1) % 4294967296;
-    // don't let consecutive vals be too close together
-    // gets away from really trying to be random, in favor of better local uniformity
-    if(Math.abs(randSeed - lastVal) < 429496729) return rand();
-    return randSeed / 4294967296;
-}
 
 // constants for dynamic jitter (ie less jitter for sparser points)
 var JITTERCOUNT = 5; // points either side of this to include
@@ -61195,8 +61329,8 @@ function plotPoints(sel, axes, trace, t) {
     // to support violin points
     var mode = trace.boxpoints || trace.points;
 
-    // repeatable pseudorandom number generator
-    seed();
+    // repeatable pseudo-random number generator
+    Lib.seedPseudoRandom();
 
     sel.selectAll('g.points')
         // since box plot points get an extra level of nesting, each
@@ -61263,7 +61397,7 @@ function plotPoints(sel, axes, trace, t) {
                 var v = pt.v;
 
                 var jitterOffset = trace.jitter ?
-                    (newJitter * jitterFactors[i] * (rand() - 0.5)) :
+                    (newJitter * jitterFactors[i] * (Lib.pseudoRandom() - 0.5)) :
                     0;
 
                 var posPx = d.pos + bPos + bdPos * (trace.pointpos + jitterOffset);
@@ -66166,8 +66300,6 @@ var getTraceColor = require('./get_trace_color');
 var Color = require('../../components/color');
 var fillHoverText = require('./fill_hover_text');
 
-var MAXDIST = Fx.constants.MAXDIST;
-
 module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     var cd = pointData.cd;
     var trace = cd[0].trace;
@@ -66183,32 +66315,32 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     // didn't find a point
     if(hoveron.indexOf('points') !== -1) {
         var dx = function(di) {
-                // dx and dy are used in compare modes - here we want to always
-                // prioritize the closest data point, at least as long as markers are
-                // the same size or nonexistent, but still try to prioritize small markers too.
-                var rad = Math.max(3, di.mrc || 0);
-                var kink = 1 - 1 / rad;
-                var dxRaw = Math.abs(xa.c2p(di.x) - xpx);
-                var d = (dxRaw < rad) ? (kink * dxRaw / rad) : (dxRaw - rad + kink);
-                return d;
-            },
-            dy = function(di) {
-                var rad = Math.max(3, di.mrc || 0);
-                var kink = 1 - 1 / rad;
-                var dyRaw = Math.abs(ya.c2p(di.y) - ypx);
-                return (dyRaw < rad) ? (kink * dyRaw / rad) : (dyRaw - rad + kink);
-            },
-            dxy = function(di) {
-                // scatter points: d.mrc is the calculated marker radius
-                // adjust the distance so if you're inside the marker it
-                // always will show up regardless of point size, but
-                // prioritize smaller points
-                var rad = Math.max(minRad, di.mrc || 0);
-                var dx = xa.c2p(di.x) - xpx;
-                var dy = ya.c2p(di.y) - ypx;
-                return Math.max(Math.sqrt(dx * dx + dy * dy) - rad, 1 - minRad / rad);
-            },
-            distfn = Fx.getDistanceFunction(hovermode, dx, dy, dxy);
+            // dx and dy are used in compare modes - here we want to always
+            // prioritize the closest data point, at least as long as markers are
+            // the same size or nonexistent, but still try to prioritize small markers too.
+            var rad = Math.max(3, di.mrc || 0);
+            var kink = 1 - 1 / rad;
+            var dxRaw = Math.abs(xa.c2p(di.x) - xpx);
+            var d = (dxRaw < rad) ? (kink * dxRaw / rad) : (dxRaw - rad + kink);
+            return d;
+        };
+        var dy = function(di) {
+            var rad = Math.max(3, di.mrc || 0);
+            var kink = 1 - 1 / rad;
+            var dyRaw = Math.abs(ya.c2p(di.y) - ypx);
+            return (dyRaw < rad) ? (kink * dyRaw / rad) : (dyRaw - rad + kink);
+        };
+        var dxy = function(di) {
+            // scatter points: d.mrc is the calculated marker radius
+            // adjust the distance so if you're inside the marker it
+            // always will show up regardless of point size, but
+            // prioritize smaller points
+            var rad = Math.max(minRad, di.mrc || 0);
+            var dx = xa.c2p(di.x) - xpx;
+            var dy = ya.c2p(di.y) - ypx;
+            return Math.max(Math.sqrt(dx * dx + dy * dy) - rad, 1 - minRad / rad);
+        };
+        var distfn = Fx.getDistanceFunction(hovermode, dx, dy, dxy);
 
         Fx.getClosest(cd, distfn, pointData);
 
@@ -66216,10 +66348,10 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
         if(pointData.index !== false) {
 
             // the closest data point
-            var di = cd[pointData.index],
-                xc = xa.c2p(di.x, true),
-                yc = ya.c2p(di.y, true),
-                rad = di.mrc || 1;
+            var di = cd[pointData.index];
+            var xc = xa.c2p(di.x, true);
+            var yc = ya.c2p(di.y, true);
+            var rad = di.mrc || 1;
 
             Lib.extendFlat(pointData, {
                 color: getTraceColor(trace, di),
@@ -66232,7 +66364,7 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
                 y1: yc + rad,
                 yLabelVal: di.y,
 
-                kink: Math.max(minRad, di.mrc || 0)
+                spikeDistance: dxy(di)
             });
 
             fillHoverText(di, trace, pointData);
@@ -66244,14 +66376,15 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
 
     // even if hoveron is 'fills', only use it if we have polygons too
     if(hoveron.indexOf('fills') !== -1 && trace._polygons) {
-        var polygons = trace._polygons,
-            polygonsIn = [],
-            inside = false,
-            xmin = Infinity,
-            xmax = -Infinity,
-            ymin = Infinity,
-            ymax = -Infinity,
-            i, j, polygon, pts, xCross, x0, x1, y0, y1;
+        var polygons = trace._polygons;
+        var polygonsIn = [];
+        var inside = false;
+        var xmin = Infinity;
+        var xmax = -Infinity;
+        var ymin = Infinity;
+        var ymax = -Infinity;
+
+        var i, j, polygon, pts, xCross, x0, x1, y0, y1;
 
         for(i = 0; i < polygons.length; i++) {
             polygon = polygons[i];
@@ -66309,7 +66442,8 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
 
             Lib.extendFlat(pointData, {
                 // never let a 2D override 1D type as closest point
-                distance: MAXDIST + 10,
+                // also: no spikeDistance, it's not allowed for fills
+                distance: pointData.maxHoverDistance,
                 x0: xmin,
                 x1: xmax,
                 y0: yAvg,
